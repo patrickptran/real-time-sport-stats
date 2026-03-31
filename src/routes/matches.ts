@@ -1,13 +1,41 @@
 import { Router } from "express";
-import { createMatchSchema } from "../validation/matches";
+import {
+  createMatchSchema,
+  listMatchesQuerySchema,
+} from "../validation/matches";
 import { db } from "../db/db";
 import { matches } from "../db/schema";
 import { getMatchStatus } from "../utils/match-utils";
+import { desc } from "drizzle-orm";
+
 export const matchesRouter = Router();
 
+const MAX_LIMIT = 100;
+
 // Example route to get all matches
-matchesRouter.get("/", (req, res) => {
-  res.status(200).json({ message: "List of matches will be here" });
+matchesRouter.get("/", async (req, res) => {
+  const parsed = listMatchesQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "invalid Query",
+      details: JSON.stringify(parsed.error),
+    });
+  }
+  const limit = Math.min(parsed.data.limit ?? 50, MAX_LIMIT);
+
+  try {
+    const data = await db
+      .select()
+      .from(matches)
+      .orderBy(desc(matches.createdAt))
+      .limit(limit);
+
+    res.json({ data });
+  } catch (e) {
+    res.status(500).json({
+      error: "Failed to fetch matches",
+    });
+  }
 });
 
 matchesRouter.post("/", async (req, res) => {

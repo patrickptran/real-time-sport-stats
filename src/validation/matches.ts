@@ -6,16 +6,42 @@ export const MATCH_STATUS = {
   FINISHED: "finished",
 };
 
+type MatchStatus = (typeof MATCH_STATUS)[keyof typeof MATCH_STATUS];
+
+export interface Match {
+  id: number;
+  sport: string;
+  homeTeam: string;
+  awayTeam: string;
+  status: MatchStatus;
+  startTime: string; // ISO timestamp
+  endTime?: string | null; // optional
+  homeScore: number;
+  awayScore: number;
+  createdAt: Date; // ISO timestamp
+}
+export const isoDateString = z
+  .string()
+  .refine((val) => !isNaN(Date.parse(val)), {
+    message: "Invalid ISO date string",
+  });
+
+export interface MatchCreateInput {
+  sport: string;
+  homeTeam: string;
+  awayTeam: string;
+  startTime: string;
+  endTime: string | null;
+  homeScore?: number;
+  awayScore?: number;
+}
+
 export const listMatchesQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).optional(),
 });
 
 export const matchIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
-});
-
-const isoDateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
-  message: "Invalid ISO date string",
 });
 
 export const createMatchSchema = z
@@ -25,8 +51,8 @@ export const createMatchSchema = z
     awayTeam: z.string().min(1),
     startTime: isoDateString,
     endTime: isoDateString,
-    homescore: z.coerce.number().int().nonnegative().optional(),
-    awayscore: z.coerce.number().int().nonnegative().optional(),
+    homeScore: z.coerce.number().int().nonnegative().optional(),
+    awayScore: z.coerce.number().int().nonnegative().optional(),
   })
   .superRefine((data, ctx) => {
     const start = new Date(data.startTime),

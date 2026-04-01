@@ -20,11 +20,6 @@ export interface Match {
   awayScore: number;
   createdAt: Date; // ISO timestamp
 }
-export const isoDateString = z
-  .string()
-  .refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid ISO date string",
-  });
 
 export interface MatchCreateInput {
   sport: string;
@@ -49,8 +44,8 @@ export const createMatchSchema = z
     sport: z.string().min(1),
     homeTeam: z.string().min(1),
     awayTeam: z.string().min(1),
-    startTime: isoDateString,
-    endTime: isoDateString,
+    startTime: z.iso.datetime(),
+    endTime: z.iso.datetime(),
     homeScore: z.coerce.number().int().nonnegative().optional(),
     awayScore: z.coerce.number().int().nonnegative().optional(),
   })

@@ -18,7 +18,7 @@ matchesRouter.get("/", async (req, res) => {
   if (!parsed.success) {
     return res.status(400).json({
       error: "invalid Query",
-      details: JSON.stringify(parsed.error),
+      details: parsed.error.issues,
     });
   }
   const limit = Math.min(parsed.data.limit ?? 50, MAX_LIMIT);
@@ -43,7 +43,7 @@ matchesRouter.post("/", async (req, res) => {
   if (!parsed.success) {
     return res.status(400).json({
       error: "Invalid payload",
-      details: JSON.stringify(parsed.error),
+      details: parsed.error.issues,
     });
   }
 

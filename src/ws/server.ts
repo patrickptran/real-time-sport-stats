@@ -1,11 +1,13 @@
 import { Server, WebSocket, WebSocketServer } from "ws";
+import {
+  verifyToken,
+  extractTokenFromHeader,
+  TokenPayload,
+} from "../utils/jwt";
 
-declare global {
-  namespace WebSocket {
-    interface WebSocket {
-      isAlive?: boolean;
-    }
-  }
+interface AuthenticatedWebSocket extends WebSocket {
+  isAlive?: boolean;
+  userId?: string;
 }
 
 const sendJson = (socket: WebSocket, payload: any) => {
@@ -27,13 +29,38 @@ export const attachWebSocketServer = (server: any) => {
     maxPayload: 1024 * 1024,
   });
 
-  wss.on("conection", (socket) => {
+  wss.on("connection", (socket: AuthenticatedWebSocket, request) => {
+    // Extract and verify JWT token from query params or headers
+    const url = new URL(request.url || "", `http://${request.headers.host}`);
+    const token =
+      url.searchParams.get("token") ||
+      extractTokenFromHeader(request.headers.authorization);
+
+    if (!token) {
+      sendJson(socket, {
+        type: "error",
+        message: "Missing authentication token",
+      });
+      socket.close(1008, "Unauthorized");
+      return;
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      sendJson(socket, { type: "error", message: "Invalid or expired token" });
+      socket.close(1008, "Unauthorized");
+      return;
+    }
+
+    // Attach user info to socket
+    socket.userId = payload.userId;
     socket.isAlive = true;
+
     socket.on("pong", () => {
       socket.isAlive = true;
     });
 
-    sendJson(socket, { type: "welcome" });
+    sendJson(socket, { type: "welcome", userId: payload.userId });
     socket.on("error", console.error);
   });
 

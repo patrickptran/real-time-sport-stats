@@ -6,6 +6,8 @@ import {
 import { db } from "../db/db";
 import { matches } from "../db/schema";
 import { getMatchStatus } from "../utils/match-utils";
+import { authMiddleware } from "../middleware/auth";
+import { generateToken } from "../utils/jwt";
 import { desc } from "drizzle-orm";
 
 export const matchesRouter = Router();
@@ -38,7 +40,7 @@ matchesRouter.get("/", async (req, res) => {
   }
 });
 
-matchesRouter.post("/", async (req, res) => {
+matchesRouter.post("/", authMiddleware, async (req, res) => {
   const parsed = createMatchSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({

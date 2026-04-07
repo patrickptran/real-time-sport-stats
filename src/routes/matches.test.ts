@@ -3,6 +3,7 @@ import express from "express";
 import { matchesRouter } from "./matches";
 import { db } from "../db/db";
 import { matches } from "../db/schema";
+import { generateToken } from "../utils/jwt";
 
 // Mock the database module
 jest.mock("../db/db", () => ({
@@ -20,6 +21,9 @@ jest.mock("../utils/match-utils", () => ({
 const app = express();
 app.use(express.json());
 app.use("/matches", matchesRouter);
+
+// Generate a valid token for tests
+const validToken = generateToken("test-user", "test@example.com");
 
 describe("Matches Router", () => {
   beforeEach(() => {
@@ -135,13 +139,16 @@ describe("Matches Router", () => {
         }),
       });
 
-      const response = await request(app).post("/matches").send({
-        sport: "football",
-        homeTeam: "Team A",
-        awayTeam: "Team B",
-        startTime: "2026-04-01T00:00:00Z",
-        endTime: "2026-04-01T02:00:00Z",
-      });
+      const response = await request(app)
+        .post("/matches")
+        .set("Authorization", `Bearer ${validToken}`)
+        .send({
+          sport: "football",
+          homeTeam: "Team A",
+          awayTeam: "Team B",
+          startTime: "2026-04-01T00:00:00Z",
+          endTime: "2026-04-01T02:00:00Z",
+        });
 
       expect(response.status).toBe(201);
       expect(response.body.data).toEqual(newMatch);
@@ -167,15 +174,18 @@ describe("Matches Router", () => {
         }),
       });
 
-      const response = await request(app).post("/matches").send({
-        sport: "football",
-        homeTeam: "Team A",
-        awayTeam: "Team B",
-        startTime: "2026-04-01T00:00:00Z",
-        endTime: "2026-04-01T02:00:00Z",
-        homeScore: 2,
-        awayScore: 1,
-      });
+      const response = await request(app)
+        .post("/matches")
+        .set("Authorization", `Bearer ${validToken}`)
+        .send({
+          sport: "football",
+          homeTeam: "Team A",
+          awayTeam: "Team B",
+          startTime: "2026-04-01T00:00:00Z",
+          endTime: "2026-04-01T02:00:00Z",
+          homeScore: 2,
+          awayScore: 1,
+        });
 
       expect(response.status).toBe(201);
       expect(response.body.data.homeScore).toBe(2);
@@ -183,37 +193,46 @@ describe("Matches Router", () => {
     });
 
     it("should return 400 for missing required fields", async () => {
-      const response = await request(app).post("/matches").send({
-        sport: "football",
-        homeTeam: "Team A",
-        // missing awayTeam, startTime, endTime
-      });
+      const response = await request(app)
+        .post("/matches")
+        .set("Authorization", `Bearer ${validToken}`)
+        .send({
+          sport: "football",
+          homeTeam: "Team A",
+          // missing awayTeam, startTime, endTime
+        });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid payload");
     });
 
     it("should return 400 for invalid date format", async () => {
-      const response = await request(app).post("/matches").send({
-        sport: "football",
-        homeTeam: "Team A",
-        awayTeam: "Team B",
-        startTime: "not-a-date",
-        endTime: "2026-04-01T02:00:00Z",
-      });
+      const response = await request(app)
+        .post("/matches")
+        .set("Authorization", `Bearer ${validToken}`)
+        .send({
+          sport: "football",
+          homeTeam: "Team A",
+          awayTeam: "Team B",
+          startTime: "not-a-date",
+          endTime: "2026-04-01T02:00:00Z",
+        });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid payload");
     });
 
     it("should return 400 when endTime is before or equal to startTime", async () => {
-      const response = await request(app).post("/matches").send({
-        sport: "football",
-        homeTeam: "Team A",
-        awayTeam: "Team B",
-        startTime: "2026-04-01T02:00:00Z",
-        endTime: "2026-04-01T00:00:00Z", // before startTime
-      });
+      const response = await request(app)
+        .post("/matches")
+        .set("Authorization", `Bearer ${validToken}`)
+        .send({
+          sport: "football",
+          homeTeam: "Team A",
+          awayTeam: "Team B",
+          startTime: "2026-04-01T02:00:00Z",
+          endTime: "2026-04-01T00:00:00Z", // before startTime
+        });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe("Invalid payload");
@@ -226,13 +245,16 @@ describe("Matches Router", () => {
         }),
       });
 
-      const response = await request(app).post("/matches").send({
-        sport: "football",
-        homeTeam: "Team A",
-        awayTeam: "Team B",
-        startTime: "2026-04-01T00:00:00Z",
-        endTime: "2026-04-01T02:00:00Z",
-      });
+      const response = await request(app)
+        .post("/matches")
+        .set("Authorization", `Bearer ${validToken}`)
+        .send({
+          sport: "football",
+          homeTeam: "Team A",
+          awayTeam: "Team B",
+          startTime: "2026-04-01T00:00:00Z",
+          endTime: "2026-04-01T02:00:00Z",
+        });
 
       expect(response.status).toBe(500);
       expect(response.body.error).toBe("Failed to create match");

@@ -4,7 +4,7 @@ CREATE TABLE "commentary" (
 	"match_id" integer NOT NULL,
 	"minutes" integer NOT NULL,
 	"sequence" integer,
-	"period" integer,
+	"period" text,
 	"event_type" text,
 	"actor" text,
 	"team" text,

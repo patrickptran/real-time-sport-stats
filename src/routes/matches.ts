@@ -9,6 +9,7 @@ import { getMatchStatus } from "../utils/match-utils";
 import { authMiddleware } from "../middleware/auth";
 import { generateToken } from "../utils/jwt";
 import { desc } from "drizzle-orm";
+import { commentaryRouter } from "./commentary";
 
 export const matchesRouter = Router();
 
@@ -79,3 +80,6 @@ matchesRouter.post("/", authMiddleware, async (req, res) => {
     });
   }
 });
+
+// Mount commentary router for specific match routes
+matchesRouter.use("/:id/commentary", commentaryRouter);

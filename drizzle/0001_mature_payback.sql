@@ -1,0 +1,1 @@
+ALTER TABLE "commentary" ALTER COLUMN "period" SET DATA TYPE text;

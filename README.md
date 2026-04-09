@@ -97,6 +97,8 @@ Stores live commentary and events during matches:
 ### Security Middleware
 - **Helmet.js**: Security headers for HTTP protection
 - **CORS**: Configurable cross-origin resource sharing
+  - Development: Allows all origins
+  - Production: Restricts to allowed origins via `ALLOWED_ORIGINS` env var
 - **Rate Limiting**: Multi-tier rate limiting with different limits per endpoint type
 - **Input Validation**: Zod schemas for all API inputs
 
@@ -173,6 +175,9 @@ npm test jwt.test.ts
    # Server
    PORT=8000
    HOST=0.0.0.0
+
+   # CORS (Production only - comma-separated list of allowed origins)
+   # ALLOWED_ORIGINS=https://your-frontend.com,https://admin.your-frontend.com
    ```
 
 3. **Database Setup**
@@ -290,5 +295,38 @@ RateLimit-Reset: 1640995200
 | `npm run db:migrate` | Apply database migrations |
 | `npm run db:studio` | Open Drizzle Studio for database management |
 
+## 🐛 Troubleshooting
+
+### CORS Issues
+If you're experiencing CORS errors when connecting from a frontend application:
+
+**Development:**
+- CORS is automatically configured to allow all origins in development mode
+- Make sure your frontend is running on a different port than the API server
+
+**Production:**
+- Set the `ALLOWED_ORIGINS` environment variable with comma-separated URLs
+- Example: `ALLOWED_ORIGINS=https://your-frontend.com,https://admin.your-frontend.com`
+- Restart the server after changing environment variables
+
+**Common CORS Errors:**
+- `Access-Control-Allow-Origin header missing` - CORS middleware not configured
+- `CORS policy blocked` - Origin not in allowed list (production)
+- WebSocket CORS issues - Usually resolved by the HTTP CORS configuration
+
+### Database Connection Issues
+- Verify `DATABASE_URL` is correctly set in `.env`
+- Ensure PostgreSQL server is running and accessible
+- Check database credentials and SSL requirements
+
+### JWT Authentication Issues
+- Verify `JWT_SECRET` is set and matches between token generation/verification
+- Check token expiration (currently: 1 hour)
+- Ensure tokens are sent in `Authorization: Bearer <token>` header
+
+### WebSocket Connection Issues
+- WebSocket endpoint: `ws://localhost:8000/ws` (or your server URL)
+- Include JWT token as query parameter: `?token=<jwt_token>`
+- Or in Authorization header during initial HTTP upgrade request
 
 **Built with ❤️ for learning and development**

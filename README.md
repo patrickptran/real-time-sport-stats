@@ -295,6 +295,85 @@ RateLimit-Reset: 1640995200
 | `npm run db:migrate` | Apply database migrations |
 | `npm run db:studio` | Open Drizzle Studio for database management |
 
+## 🧪 Testing Commentary Broadcasting
+
+Test the real-time commentary broadcasting functionality:
+
+### Automated Test
+```bash
+# Start the server in one terminal
+npm run dev
+
+# In another terminal, run the automated test
+npm run test:commentary
+```
+
+This will automatically:
+1. Login and get JWT token
+2. Create a test match
+3. Connect to WebSocket and subscribe to the match
+4. Create commentary via API
+5. Verify the commentary is broadcast to WebSocket subscribers
+
+### Manual Testing
+
+**Terminal 1: Start Server**
+```bash
+npm run dev
+```
+
+**Terminal 2: Get JWT Token**
+```bash
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"test-user","email":"test@example.com"}'
+```
+
+**Terminal 3: Connect WebSocket & Subscribe**
+```bash
+# Install wscat if you haven't: npm install -g wscat
+wscat -c "ws://localhost:8000/ws?token=YOUR_JWT_TOKEN"
+# Then type and send: {"type":"subscribe","matchId":1}
+```
+
+**Terminal 4: Create Commentary**
+```bash
+curl -X POST http://localhost:8000/matches/1/commentary \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "minutes": 45,
+    "message": "Amazing goal!",
+    "eventType": "goal",
+    "actor": "Player Name",
+    "team": "Team A",
+    "period": "2nd half"
+  }'
+```
+
+**Expected Result:** You should see the commentary broadcast in Terminal 3:
+```json
+{
+  "type": "commentary",
+  "data": {
+    "id": 1,
+    "matchId": 1,
+    "minutes": 45,
+    "message": "Amazing goal!",
+    "eventType": "goal",
+    "actor": "Player Name",
+    "team": "Team A",
+    "period": "2nd half",
+    "createdAt": "2024-01-01T12:00:00.000Z"
+  }
+}
+```
+
+### Windows Scripts
+- `test-commentary.bat` - Batch file with testing commands
+- `test-commentary.ps1` - PowerShell script with colored output
+- `test-commentary.js` - Node.js script that automates the entire test
+
 ## 🐛 Troubleshooting
 
 ### CORS Issues

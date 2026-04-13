@@ -14,7 +14,7 @@
     "db:generate": "npx drizzle-kit generate --config=drizzle.config.ts",
     "db:studio": "npx drizzle-kit studio",
     "demo": "node src/crud-demo.ts",
-    "seed": "node src/seed/seed.js"
+    "seed": "ts-node src/seed/seed.ts"
   },
   "keywords": [],
   "author": "",

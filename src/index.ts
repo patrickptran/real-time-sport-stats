@@ -34,7 +34,7 @@ app.use(
 app.use(helmet());
 
 // Rate limiting - apply general limits to all routes
-app.use(generalLimiter);
+// app.use(generalLimiter);
 
 const server = http.createServer(app);
 
@@ -47,10 +47,12 @@ app.get("/", (req, res) => {
 });
 
 // Auth routes - strict rate limiting for security
-app.use("/auth", authLimiter, authRouter);
+// app.use("/auth", authLimiter, authRouter);
+app.use("/auth", authRouter);
 
 // Matches routes - stricter limits for create operations
-app.use("/matches", createLimiter, matchesRouter);
+// app.use("/matches", createLimiter, matchesRouter);
+app.use("/matches", matchesRouter);
 
 const { broadcastMatchCreated, broadcastCommentary } =
   attachWebSocketServer(server);

@@ -80,7 +80,7 @@ export interface CommentaryEntry {
  */
 export interface CommentaryPayload {
   message: string;
-  minute?: number;
+  minutes?: number;
   sequence?: number;
   period?: string;
   eventType?: string;

@@ -1,103 +1,75 @@
 # Real-Time Sport Broadcast
 
-A secure, real-time sport broadcast system built with Express.js, TypeScript, and Drizzle ORM for PostgreSQL. Features JWT authentication, WebSocket real-time updates, and comprehensive security testing.
+A real-time sport broadcast system with Express.js, TypeScript, PostgreSQL, JWT authentication, and WebSocket support.
 
-## 🚀 Features
+## Tech Stack
 
-- **🔐 JWT Authentication** - Secure token-based authentication for API and WebSocket connections
-- **🌐 Real-Time WebSocket** - Live match updates with authenticated connections
-- **🛡️ Security First** - Protected endpoints, input validation, and comprehensive security tests
-- **📊 RESTful API** - Full CRUD operations for matches with proper authorization
-- **🗄️ PostgreSQL Database** - Robust data storage with Drizzle ORM
-- **🔍 TypeScript** - Full type safety throughout the application
-- **🧪 Comprehensive Testing** - 63+ security and functionality tests
-- **📱 Real-Time Broadcasting** - Live match commentary and score updates
+- **Backend**: Express.js + TypeScript
+- **Database**: PostgreSQL + Drizzle ORM
+- **Auth**: JWT
+- **Real-Time**: WebSocket
+- **Testing**: Jest + Supertest
 
-## 🛠️ Tech Stack
+## Setup
 
-- **Backend**: Express.js with TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: JWT (jsonwebtoken)
-- **Real-Time**: WebSocket (ws)
-- **Validation**: Zod for input validation
-- **Security**: Helmet for HTTP headers, CORS protection
-- **Testing**: Jest with Supertest
-- **Migration**: Drizzle Kit
+```bash
+npm install
+npm run dev  # Start server
+npm run seed # Seed with test data
+```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
-├── db/
-│   ├── schema.ts          # Database schema definitions
-│   └── db.ts              # Database connection
-├── middleware/
-│   ├── auth.ts            # JWT authentication middleware
-│   ├── auth.test.ts       # Auth middleware tests
-│   ├── rate-limit.ts      # Rate limiting middleware
-│   └── rate-limit.test.ts # Rate limiting tests
-├── routes/
-│   ├── auth.ts            # Authentication endpoints (/auth)
-│   ├── auth.test.ts       # Auth route tests
-│   ├── matches.ts         # Match CRUD endpoints (/matches)
-│   └── matches.test.ts    # Match endpoint tests
-├── utils/
-│   ├── jwt.ts             # JWT token utilities
-│   ├── jwt.test.ts        # JWT utility tests
-│   └── match-utils.ts     # Match status utilities
-├── validation/
-│   └── matches.ts         # Zod validation schemas
-├── ws/
-│   ├── server.ts          # WebSocket server with auth
-│   └── server.test.ts     # WebSocket security tests
-├── index.ts               # Express server setup
-└── arcjet.ts              # Security configuration (placeholder)
+├── db/        # Schema & database connection
+├── routes/    # API endpoints
+├── middleware/ # Auth & rate limiting
+├── utils/     # JWT & utilities
+├── validation/ # Zod schemas
+├── ws/        # WebSocket server
+└── seed/      # Data seeding
 ```
 
-## 🗄️ Database Schema
+## API Endpoints
 
-### Matches Table
-Stores information about sport matches:
+### Matches
+- `GET /matches` - List all matches
+- `POST /matches` - Create match (requires auth)
+- `GET /matches/:id/commentary` - Get match commentary
+- `POST /matches/:id/commentary` - Add commentary (requires auth)
 
-- `id`: Primary key (auto-increment)
-- `sport`: Type of sport (e.g., "football", "basketball")
-- `homeTeam`: Name of the home team
-- `awayTeam`: Name of the away team
-- `status`: Match status enum ("scheduled", "live", "finished")
-- `startTime`: When the match begins
-- `endTime`: When the match ends (nullable)
-- `homeScore`: Current score for home team
-- `awayScore`: Current score for away team
-- `createdAt`: Timestamp when record was created
+### Auth
+- `POST /auth/signup` - Register user
+- `POST /auth/login` - Login user
 
-### Commentary Table
-Stores live commentary and events during matches:
+## Database
 
-- `id`: Primary key (auto-increment)
-- `matchId`: Foreign key referencing matches.id
-- `minutes`: Minute of the match when event occurred
-- `sequence`: Sequence number for ordering events within the same minute
-- `period`: Period/half of the match (e.g., 1st half, 2nd half)
-- `eventType`: Type of event (e.g., "goal", "foul", "substitution")
-- `actor`: Player or entity involved in the event
-- `team`: Team involved ("home" or "away")
-- `message`: Human-readable commentary message
-- `metadata`: JSON field for additional event data
-- `tags`: Array of tags for categorization
-- `createdAt`: Timestamp when commentary was created
+**Matches**: id, sport, homeTeam, awayTeam, status, startTime, endTime, homeScore, awayScore, createdAt
 
-## 🔐 Security Features
+**Commentary**: id, matchId, minutes, sequence, period, eventType, actor, team, message, metadata, tags, createdAt
 
-### JWT Authentication
-- **Token Generation**: Secure JWT tokens with configurable expiration
-- **Token Verification**: Validates token integrity and expiration
-- **Protected Routes**: POST/PUT/DELETE endpoints require authentication
-- **WebSocket Auth**: Real-time connections require valid JWT tokens
+## Environment Variables
 
-### Security Middleware
-- **Helmet.js**: Security headers for HTTP protection
-- **CORS**: Configurable cross-origin resource sharing
-  - Development: Allows all origins
+```env
+DATABASE_URL=postgres://...
+JWT_SECRET=your-secret-key
+API_URL=http://localhost:8000
+DELAY_MS=1000          # Seed delay between posts
+SEED_FORCE_LIVE=true   # Force live match seeding
+```
+
+## Running Tests
+
+```bash
+npm test
+npm run test:watch
+```
+
+## Real-Time Updates
+
+WebSocket connections require a valid JWT token in the Authorization header. Connect to `ws://localhost:8000` with your token to receive live commentary updates.
+
   - Production: Restricts to allowed origins via `ALLOWED_ORIGINS` env var
 - **Rate Limiting**: Multi-tier rate limiting with different limits per endpoint type
 - **Input Validation**: Zod schemas for all API inputs
@@ -115,7 +87,7 @@ Stores live commentary and events during matches:
 - **Connection Rejection**: Invalid tokens result in immediate disconnection
 - **User Context**: Authenticated user info attached to WebSocket connections
 
-## 🧪 Testing
+## Testing
 
 Comprehensive test suite covering all security and functionality:
 
@@ -139,7 +111,7 @@ npm test -- --coverage
 npm test jwt.test.ts
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+
@@ -197,7 +169,7 @@ npm test jwt.test.ts
 
    Server will be available at: `http://localhost:8000`
 
-## 📡 API Usage
+## API Usage
 
 ### Authentication
 
@@ -282,7 +254,7 @@ RateLimit-Reset: 1640995200
 
 **Note:** Authentication endpoints have stricter limits to prevent brute force attacks. Successful login attempts don't count against the limit.
 
-## 📋 Available Scripts
+## Available Scripts
 
 | Command | Description |
 |---------|-------------|
@@ -295,7 +267,7 @@ RateLimit-Reset: 1640995200
 | `npm run db:migrate` | Apply database migrations |
 | `npm run db:studio` | Open Drizzle Studio for database management |
 
-## 🧪 Testing Commentary Broadcasting
+## Testing Commentary Broadcasting
 
 Test the real-time commentary broadcasting functionality:
 
@@ -374,29 +346,7 @@ curl -X POST http://localhost:8000/matches/1/commentary \
 - `test-commentary.ps1` - PowerShell script with colored output
 - `test-commentary.js` - Node.js script that automates the entire test
 
-## 🐛 Troubleshooting
-
-### CORS Issues
-If you're experiencing CORS errors when connecting from a frontend application:
-
-**Development:**
-- CORS is automatically configured to allow all origins in development mode
-- Make sure your frontend is running on a different port than the API server
-
-**Production:**
-- Set the `ALLOWED_ORIGINS` environment variable with comma-separated URLs
-- Example: `ALLOWED_ORIGINS=https://your-frontend.com,https://admin.your-frontend.com`
-- Restart the server after changing environment variables
-
-**Common CORS Errors:**
-- `Access-Control-Allow-Origin header missing` - CORS middleware not configured
-- `CORS policy blocked` - Origin not in allowed list (production)
-- WebSocket CORS issues - Usually resolved by the HTTP CORS configuration
-
-### Database Connection Issues
-- Verify `DATABASE_URL` is correctly set in `.env`
-- Ensure PostgreSQL server is running and accessible
-- Check database credentials and SSL requirements
+## Troubleshooting
 
 ### JWT Authentication Issues
 - Verify `JWT_SECRET` is set and matches between token generation/verification
@@ -408,4 +358,4 @@ If you're experiencing CORS errors when connecting from a frontend application:
 - Include JWT token as query parameter: `?token=<jwt_token>`
 - Or in Authorization header during initial HTTP upgrade request
 
-**Built with ❤️ for learning and development**
+**Built for learning and development purposes**

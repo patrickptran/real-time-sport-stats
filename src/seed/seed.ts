@@ -2,6 +2,7 @@ import "dotenv/config";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
 import path from "path";
+import { generateToken } from "../utils/jwt";
 import type {
   SeedConfig,
   RawSeedData,
@@ -25,7 +26,7 @@ import type {
   TeamDesignation,
 } from "./types.js";
 
-const DELAY_MS: number = Number.parseInt(process.env.DELAY_MS || "250", 10);
+const DELAY_MS: number = Number.parseInt(process.env.DELAY_MS || "1000", 10);
 const NEW_MATCH_DELAY_MIN_MS: number = 2000;
 const NEW_MATCH_DELAY_MAX_MS: number = 3000;
 const DEFAULT_MATCH_DURATION_MINUTES: number = Number.parseInt(
@@ -39,6 +40,8 @@ const API_URL: string = process.env.API_URL!;
 if (!API_URL) {
   throw new Error("API_URL is required to seed via REST endpoints.");
 }
+
+const AUTH_TOKEN: string = generateToken("seed-user");
 
 const DEFAULT_DATA_FILE = path.join(__dirname, "../data/data.json");
 
@@ -68,7 +71,12 @@ async function loadSeedData(): Promise<ParsedSeedData> {
 }
 
 async function fetchMatches(limit: number = 100): Promise<MatchData[]> {
-  const response = await fetch(`${API_URL}/matches?limit=${limit}`);
+  const response = await fetch(`${API_URL}/matches?limit=${limit}`, {
+    headers: {
+      Authorization: `Bearer ${AUTH_TOKEN}`,
+    },
+  });
+
   if (!response.ok) {
     throw new Error(`Failed to fetch matches: ${response.status}`);
   }
@@ -145,7 +153,10 @@ async function createMatch(seedMatch: SeedMatch): Promise<MatchData> {
 
   const response = await fetch(`${API_URL}/matches`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${AUTH_TOKEN}`,
+    },
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -163,7 +174,7 @@ async function insertCommentary(
     message: entry.message ?? "Update",
   };
   if (entry.minute !== undefined && entry.minute !== null) {
-    payload.minute = entry.minute;
+    payload.minutes = entry.minute;
   }
   if (entry.sequence !== undefined && entry.sequence !== null) {
     payload.sequence = entry.sequence;
@@ -189,7 +200,10 @@ async function insertCommentary(
 
   const response = await fetch(`${API_URL}/matches/${matchId}/commentary`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${AUTH_TOKEN}`,
+    },
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
